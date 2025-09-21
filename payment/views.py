@@ -1,4 +1,6 @@
 import stripe
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
@@ -85,3 +87,50 @@ class PaymentView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(
+        operation_id="stripe_webhook",
+        summary="Stripe Webhook",
+        description=(
+                "Receives Stripe webhook events "
+                "(e.g., `checkout.session.completed`). "
+                "Verifies the Stripe signature and updates "
+                "the corresponding `Payment` status. "
+                "Called directly by Stripe, not by users."
+        ),
+        request=None,
+        responses={
+            200: OpenApiResponse(description="Webhook processed."),
+            400: OpenApiResponse(description="Invalid payload or signature."),
+        },
+        tags=["Payments"],
+    )
+    @csrf_exempt
+    @action(methods=["post"], detail=False, url_path="stripe-webhook")
+    def stripe_webhook(self, request):
+        payload = request.body
+        sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+        event = None
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_SECRET
+            )
+        except ValueError:
+            return HttpResponse(status=400)
+        except stripe.error.SignatureVerificationError:
+            return HttpResponse(status=400)
+
+        if event and event["type"] == "checkout.session.completed":
+            send_telegram_message.delay(
+                [
+                    "Payment was successful!\n",
+                ]
+            )
+
+            session = event["data"]["object"]
+            Payment.objects.filter(
+                session_id=session["id"]
+            ).update(status="PD")
+
+        return HttpResponse(status=200)
