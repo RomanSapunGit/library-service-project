@@ -41,3 +41,10 @@ class BorrowingViewTests(TestCase):
         elif pk:
             return reverse("borrowing:borrowing-detail", args=[pk])
         return reverse("borrowing:borrowing-list")
+
+    def test_list_borrowings_as_user(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], self.borrowing.id)
