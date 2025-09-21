@@ -12,3 +12,8 @@ class BorrowingSerializer(serializers.ModelSerializer):
         fields = ("id", "book", "expected_return_date", "user", "payments")
         read_only_fields = ["id", "user"]
 
+class BorrowingReturnSerializer(BorrowingSerializer):
+
+    class Meta:
+        model = Borrowing
+        fields = BorrowingSerializer.Meta.fields + ("actual_return_date",)
