@@ -11,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from borrowing.task import send_telegram_message
 
 from library_service import settings
+from payment.filters import PaymentFilter
 from payment.models import Payment
 from payment.serializers import PaymentSerializer, PaymentDetailSerializer
 
@@ -19,6 +20,7 @@ from payment.serializers import PaymentSerializer, PaymentDetailSerializer
 class PaymentView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     queryset = Payment.objects.all()
     filter_backends = (DjangoFilterBackend,)
+    filterset_class = PaymentFilter
 
     def get_serializer_class(self):
         if self.action == "detail":
