@@ -19,3 +19,11 @@ class ModelTests(TestCase):
         self.assertEqual(superuser.email, "admin@example.com")
         self.assertTrue(superuser.check_password("superpass123"))
 
+    def test_create_superuser_with_is_staff_false_raises_error(self):
+        with self.assertRaises(ValueError) as e:
+            get_user_model().objects.create_superuser(
+                email="admin@example.com",
+                password="superpass123",
+                is_staff=False
+            )
+        self.assertIn("is_staff=True", str(e.exception))
