@@ -85,6 +85,15 @@ class BorrowingViewTests(TestCase):
         response = self.client.post(self.get_url(), payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_return_book_success(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.get_url(action="return-book", pk=self.borrowing.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.borrowing.refresh_from_db()
+        self.assertIsNotNone(self.borrowing.actual_return_date)
+        self.book.refresh_from_db()
+        self.assertEqual(self.book.inventory, 3)
+
 
 class MockSession:
     def __init__(self, id, url):
