@@ -55,3 +55,12 @@ class PaymentTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(f"{self.get_url(action='payment-cancel')}?session_id=123")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    @patch("borrowing.task.send_telegram_message.delay")
+    def test_payment_cancel_fail(self, mock_send_message):
+        mock_send_message.return_value.status_code = 200
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(f"{self.get_url(action='payment-cancel')}")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
