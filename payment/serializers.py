@@ -10,3 +10,11 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = "__all__"
+
+
+class PaymentDetailSerializer(PaymentSerializer):
+    borrowing = serializers.SerializerMethodField()
+
+    def get_borrowing(self, obj):
+        from borrowing.serializers import BorrowingSerializer
+        return BorrowingSerializer(obj.borrowing).data
