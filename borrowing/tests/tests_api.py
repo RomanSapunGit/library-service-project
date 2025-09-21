@@ -55,3 +55,26 @@ class BorrowingViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]["id"], self.borrowing.id)
 
+    @patch("stripe.checkout.Session.create")
+    @patch("borrowing.task.send_telegram_message.delay")
+    def test_create_borrowing_with_inventory(self, mock_send_message, mock_stripe):
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            "book": self.book.id,
+            "expected_return_date": (timezone.now() + timezone.timedelta(days=7)).date(),
+        }
+
+        mock_send_message.return_value.status_code = 200
+        mock_stripe.return_value.status_code = 200
+        session = MockSession("123", "https://checkout.stripe.com/test")
+        mock_stripe.return_value = session
+
+        response = self.client.post(self.get_url(), payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.book.refresh_from_db()
+        self.assertEqual(self.book.inventory, 1)
+
+class MockSession:
+    def __init__(self, id, url):
+        self.id = id
+        self.url = url
