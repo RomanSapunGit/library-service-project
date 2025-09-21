@@ -41,3 +41,26 @@ def create_checkout_session(
         session_id=session.id,
         money_to_pay=unit_amount
     )
+
+def create_checkout_borrowing_session(
+        borrowing,
+        request,
+        fine_multiplier=1,
+        payment_type="PT"
+):
+    if fine_multiplier == 1:
+        unit_amount = borrowing.book.daily_fee * (
+            borrowing.borrow_date.day - borrowing.expected_return_date.day
+        )
+    else:
+        unit_amount = borrowing.book.daily_fee * (
+            borrowing.expected_return_date.day
+            - borrowing.actual_return_date.day
+        ) * fine_multiplier
+    return create_checkout_session(
+        borrowing.book,
+        int(unit_amount),
+        borrowing,
+        request,
+        payment_type
+    )
