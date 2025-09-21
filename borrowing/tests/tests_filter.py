@@ -54,3 +54,16 @@ class BorrowingFilterTests(TestCase):
         self.assertIn(self.borrowing_active.id, ids)
         self.assertIn(self.borrowing_returned.id, ids)
         self.assertNotIn(self.borrowing_other.id, ids)
+
+    def test_staff_can_filter_by_user_id(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get(f"{self.url}?user_id={self.user1.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        ids = [item["id"] for item in data]
+
+        self.assertIn(self.borrowing_active.id, ids)
+        self.assertIn(self.borrowing_returned.id, ids)
+        for item in data:
+            self.assertEqual(item["user"], self.user1.id)
