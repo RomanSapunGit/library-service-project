@@ -89,3 +89,12 @@ class BorrowingFilterTests(TestCase):
         ids = [item["id"] for item in response.json()]
         self.assertIn(self.borrowing_active.id, ids)
         self.assertNotIn(self.borrowing_returned.id, ids)
+
+    def test_filter_is_active_false(self):
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(f"{self.url}?is_active=False")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        ids = [item["id"] for item in response.json()]
+        self.assertIn(self.borrowing_returned.id, ids)
+        self.assertNotIn(self.borrowing_active.id, ids)
