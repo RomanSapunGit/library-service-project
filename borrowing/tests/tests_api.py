@@ -48,3 +48,10 @@ class BorrowingViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["id"], self.borrowing.id)
+
+    def test_list_borrowings_as_staff(self):
+        self.client.force_authenticate(user=self.staff)
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["id"], self.borrowing.id)
+
