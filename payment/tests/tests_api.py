@@ -1,7 +1,10 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from borrowing.models import Borrowing
@@ -44,3 +47,11 @@ class PaymentTests(TestCase):
             money_to_pay=1234,
             borrowing=self.borrowing,
         )
+
+    @patch("borrowing.task.send_telegram_message.delay")
+    def test_payment_cancel(self, mock_send_message):
+        mock_send_message.return_value.status_code = 200
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(f"{self.get_url(action='payment-cancel')}?session_id=123")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
