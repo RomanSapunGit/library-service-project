@@ -1,6 +1,8 @@
 from django.db import transaction
+from django.utils import timezone
 
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.mixins import (
     ListModelMixin,
     CreateModelMixin,
@@ -47,6 +49,31 @@ class BorrowingView(
             data={"error": "books inventory is empty!"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    @action(detail=True, methods=["post"])
+    def return_book(self, request, pk=None):
+        borrowing = self.get_object()
+
+        if borrowing.actual_return_date:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            borrowing.actual_return_date = timezone.localdate()
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                borrowing_serializer = BorrowingSerializer(borrowing)
+                return Response(
+                    borrowing_serializer.data,
+                    status=status.HTTP_200_OK
+                )
+
+            borrowing.save()
+
+            book = borrowing.book
+            book.inventory += 1
+            book.save()
+
+        serializer = self.get_serializer(borrowing)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
