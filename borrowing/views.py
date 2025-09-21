@@ -17,6 +17,7 @@ from borrowing.serializers import (
     BorrowingDetailSerializer,
     BorrowingReturnSerializer
 )
+from borrowing.task import send_telegram_message
 from library.models import Book
 
 
@@ -44,6 +45,13 @@ class BorrowingView(
                 book.inventory -= 1
                 book.save()
                 result = super().create(request, *args, **kwargs)
+                send_telegram_message(
+                    [
+                        f"Book with id {book.id} is borrowed.",
+                        f"Expected return date is: "
+                        f"{result.data['expected_return_date']}"
+                    ]
+                )
                 return result
         return Response(
             data={"error": "books inventory is empty!"},
