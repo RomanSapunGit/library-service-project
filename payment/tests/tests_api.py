@@ -64,3 +64,24 @@ class PaymentTests(TestCase):
         response = self.client.get(f"{self.get_url(action='payment-cancel')}")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @patch("stripe.Webhook.construct_event")
+    @patch("borrowing.task.send_telegram_message.delay")
+    def test_payment_stripe_webhook(self, mock_send_message, mock_webhook_event):
+        event = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "123"
+                }
+            }
+        }
+        mock_webhook_event.return_value = event
+        mock_send_message.return_value.status_code = 200
+
+        response = self.client.post(
+            self.get_url(action="stripe-webhook"),
+            HTTP_STRIPE_SIGNATURE="test"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, "PD")
