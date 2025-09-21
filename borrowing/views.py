@@ -32,3 +32,6 @@ class BorrowingView(
         if self.action == "return_book":
             return BorrowingReturnSerializer
         return BorrowingSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
