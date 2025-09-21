@@ -101,6 +101,21 @@ class BorrowingViewTests(TestCase):
         response = self.client.post(self.get_url(action="return-book", pk=self.borrowing.id))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @patch("stripe.checkout.Session.create")
+    def test_return_book_returned_later_than_expected(self, mock_stripe):
+        self.borrowing.expected_return_date = timezone.now() - timezone.timedelta(days=1)
+        self.borrowing.borrow_date = timezone.now() - timezone.timedelta(days=2)
+        self.borrowing.save()
+
+        mock_stripe.return_value.status_code = 200
+        session = MockSession("123", "https://checkout.stripe.com/test")
+        mock_stripe.return_value = session
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.get_url(action="return-book", pk=self.borrowing.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["payments"][0]["type"], "F")
+
 class MockSession:
     def __init__(self, id, url):
         self.id = id
