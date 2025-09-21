@@ -98,3 +98,18 @@ class PaymentTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("stripe.Webhook.construct_event")
+    def test_payment_stripe_webhook_invalid_payload(self, mock_webhook_event):
+        mock_webhook_event.side_effect = ValueError("Invalid payload")
+
+        payload = "not_json"
+
+        response = self.client.post(
+            self.get_url(action="stripe-webhook"),
+            data=payload,
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="any_signature"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
