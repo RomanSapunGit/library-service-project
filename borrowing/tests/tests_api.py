@@ -94,6 +94,12 @@ class BorrowingViewTests(TestCase):
         self.book.refresh_from_db()
         self.assertEqual(self.book.inventory, 3)
 
+    def test_return_book_already_returned(self):
+        self.borrowing.actual_return_date = timezone.now()
+        self.borrowing.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.get_url(action="return-book", pk=self.borrowing.id))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class MockSession:
     def __init__(self, id, url):
