@@ -1,0 +1,66 @@
+version: "3"
+services:
+  library:
+    build:
+      context: .
+      dockerfile: ../library-service-project/Dockerfile
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py wait_for_db && 
+                python manage.py migrate &&
+                python manage.py runserver 0.0.0.0:8000"
+    env_file:
+       - .env.docker
+    depends_on:
+      - db
+    volumes:
+      - ./:/app
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: >
+      http library:8000
+    depends_on:
+      - library
+    env_file:
+      - .env.docker
+    ports:
+      - "4040:4040"
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ../library-service-project/Dockerfile
+    command: celery -A library_service worker --loglevel=INFO --pool=solo
+    volumes:
+      - .:/app
+    env_file:
+      - .env.docker
+    depends_on:
+      - redis
+      - db
+
+  redis:
+    image: redis:alpine
+    container_name: redis_db
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
+    restart: always
+
+  db:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    container_name: db
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env.docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+volumes: { postgres_data: }
