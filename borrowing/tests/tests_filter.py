@@ -3,6 +3,7 @@ from datetime import timedelta, date
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from borrowing.models import Borrowing
@@ -43,3 +44,13 @@ class BorrowingFilterTests(TestCase):
         )
         self.client = APIClient()
         self.url = reverse("borrowing:borrowing-list")
+
+    def test_non_staff_user_sees_only_their_borrowings(self):
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        ids = [item["id"] for item in response.json()]
+        self.assertIn(self.borrowing_active.id, ids)
+        self.assertIn(self.borrowing_returned.id, ids)
+        self.assertNotIn(self.borrowing_other.id, ids)
