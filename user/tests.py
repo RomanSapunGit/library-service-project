@@ -37,3 +37,15 @@ class ModelTests(TestCase):
             )
         self.assertIn("is_superuser=True", str(e.exception))
 
+
+class AuthenticatedApiTests(TestCase):
+    def get_user_url(self, user_path):
+        return reverse(f"user:{user_path}")
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            "test@test.com",
+            "testpass",
+        )
+        self.client.force_authenticate(self.user)
