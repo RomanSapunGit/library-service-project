@@ -74,6 +74,18 @@ class BorrowingViewTests(TestCase):
         self.book.refresh_from_db()
         self.assertEqual(self.book.inventory, 1)
 
+    def test_create_borrowing_without_inventory(self):
+        self.book.inventory = 0
+        self.book.save()
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            "book": self.book.id,
+            "expected_return_date": (timezone.now() + timezone.timedelta(days=7)).date(),
+        }
+        response = self.client.post(self.get_url(), payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class MockSession:
     def __init__(self, id, url):
         self.id = id
