@@ -64,3 +64,17 @@ class AuthenticatedApiTests(TestCase):
         user = get_user_model().objects.get(email="u@g.com")
         self.assertTrue(check_password("t2683gru", user.password))
 
+    def test_update_user(self):
+        response = self.client.put(
+            self.get_user_url("manage"),
+            data={
+                "email": "updateu@g.com",
+                "password": "t2683gru"
+            }
+        )
+
+        self.assertNotIn("error", str(response.data))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        user = get_user_model().objects.get(email="updateu@g.com")
+        self.assertTrue(check_password("t2683gru", user.password))
