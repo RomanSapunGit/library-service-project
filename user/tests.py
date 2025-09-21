@@ -49,3 +49,18 @@ class AuthenticatedApiTests(TestCase):
             "testpass",
         )
         self.client.force_authenticate(self.user)
+
+    def test_register_user(self):
+        response = self.client.post(
+            self.get_user_url("create"),
+            data={
+                "email": "u@g.com",
+                "password": "t2683gru"
+            }
+        )
+        self.assertNotIn(str(response.data), "errors")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        user = get_user_model().objects.get(email="u@g.com")
+        self.assertTrue(check_password("t2683gru", user.password))
+
