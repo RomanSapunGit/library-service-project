@@ -85,3 +85,16 @@ class PaymentTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.payment.refresh_from_db()
         self.assertEqual(self.payment.status, "PD")
+
+    @patch("stripe.Webhook.construct_event")
+    def test_payment_stripe_webhook_invalid_signature(self, mock_webhook_event):
+        mock_webhook_event.side_effect = stripe.error.SignatureVerificationError(
+            message="Invalid signature", http_body=None, sig_header=""
+        )
+
+        response = self.client.post(
+            self.get_url(action="stripe-webhook"),
+            HTTP_STRIPE_SIGNATURE="bad_signature"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
