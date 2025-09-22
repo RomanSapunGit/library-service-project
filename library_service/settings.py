@@ -161,6 +161,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+REDIS_HOST = os.environ.get("REDIS_HOST")
+
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
 CELERY_BACKEND_URL = CELERY_BROKER_URL
 
