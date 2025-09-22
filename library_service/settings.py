@@ -30,6 +30,10 @@ SECRET_KEY = os.environ.get(
     "&*he7qu6z386(^avbtztg@l%"
 )
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -52,11 +56,13 @@ INSTALLED_APPS = [
     "user",
     "rest_framework_simplejwt",
     "django_celery_beat",
-    "drf_spectacular"
+    "drf_spectacular",
+    "debug_toolbar"
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
