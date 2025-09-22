@@ -26,6 +26,6 @@ class Payment(models.Model):
         on_delete=models.CASCADE,
         related_name="payments"
     )
-    session_url = models.URLField()
+    session_url = models.URLField(max_length=500)
     session_id = models.TextField()
     money_to_pay = models.DecimalField(decimal_places=2, max_digits=7)
