@@ -20,6 +20,7 @@ from borrowing.serializers import (
     BorrowingReturnSerializer
 )
 from borrowing.task import send_telegram_message
+from utils.redis_utils import increment_borrowing_counter
 from library.models import Book
 from payment.serializers import PaymentSerializer
 from payment.utils import create_checkout_borrowing_session
@@ -32,7 +33,7 @@ class BorrowingView(
     RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = Borrowing.objects.select_related("book")
+    queryset = Borrowing.objects.select_related("book").prefetch_related("payments")
     filter_backends = (BorrowingFilterBackend,)
     permission_classes = (IsAuthenticated,)
 
@@ -87,6 +88,7 @@ class BorrowingView(
                 payments = list(result.data["payments"])
                 payments.append(payment_serializer.data)
                 result.data["payments"] = payments
+                increment_borrowing_counter()
                 return result
         return Response(
             data={"error": "books inventory is empty!"},
