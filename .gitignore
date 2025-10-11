@@ -134,6 +134,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.docker
 .venv
 env/
 venv/
@@ -371,3 +372,4 @@ poetry.toml
 .ruff_cache/
 
 pyrightconfig.json
+celerybeat**

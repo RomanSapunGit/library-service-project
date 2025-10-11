@@ -1,0 +1,57 @@
+[
+  {
+    "model": "library.book",
+    "pk": 1,
+    "fields": {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "cover": "H",
+      "inventory": 50000,
+      "daily_fee": "1.50"
+    }
+  },
+  {
+    "model": "library.book",
+    "pk": 2,
+    "fields": {
+      "title": "1984",
+      "author": "George Orwell",
+      "cover": "S",
+      "inventory": 3,
+      "daily_fee": "1.20"
+    }
+  },
+  {
+    "model": "library.book",
+    "pk": 3,
+    "fields": {
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "cover": "H",
+      "inventory": 4,
+      "daily_fee": "1.30"
+    }
+  },
+  {
+    "model": "library.book",
+    "pk": 4,
+    "fields": {
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "cover": "S",
+      "inventory": 2,
+      "daily_fee": "1.10"
+    }
+  },
+  {
+    "model": "library.book",
+    "pk": 5,
+    "fields": {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "cover": "H",
+      "inventory": 6,
+      "daily_fee": "1.75"
+    }
+  }
+]
